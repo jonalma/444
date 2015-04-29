@@ -65,8 +65,8 @@ extern int yydebug;
     CHARACTER = 275,
     STRING = 276,
     IF = 277,
-    FI = 278,
-    THEN = 279,
+    THEN = 278,
+    FI = 279,
     VARIABLE = 280,
     DSYMTAB = 281
   };
@@ -77,7 +77,7 @@ extern int yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 158 "project.y" /* yacc.c:1909  */
+#line 190 "project.y" /* yacc.c:1909  */
 
 	int  theInt;
         double theReal;

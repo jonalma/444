@@ -88,7 +88,17 @@ unsigned int boolEval(char *bool_op, unsigned int op1, unsigned int op2)
    }
 }
 
+/*returns the double literal of variable, op1*/
 double assignEval(char *ass_op, char *op1, double op2){	
+    int index;
+    /*If variable already exists in the array, replace with new literal*/
+    for(index = 0; index < sizeof(vars); index++) {
+       if (strcmp(vars[index], op1) == 0) {
+           varVals[index] = op2;
+	   return 0;
+       }
+    }/*end for*/
+
      if(strcmp(ass_op, ":=") == 0){
 	 strcpy(vars[c], op1);
 	 varVals[c] = op2;
@@ -133,6 +143,7 @@ void symbolTab(){
    for(i=0;i<c; i++){
        printf("Variable name: %s, Value: %g\n", vars[i], varVals[i]);	
    }
+   printf("\n\n");
 }
 
 char* printEval(char *str, char *var){
@@ -147,8 +158,29 @@ char* printEval(char *str, char *var){
 	/*use index to find value of variable*/
 	value = (char*) &varVals[index];
 	/*Concatenate the string and int value*/	
-	sprintf(value,"%f",varVals[index]);
+	sprintf(value,"%.2f\n",varVals[index]);
 	return strcat(str,value);
+}
+
+/*Returns the literal depending on condition, boolVal*/
+double thenEval(unsigned int boolVal, char *variable, double literal)
+{
+   int index;
+   /*Find index of variable in var array*/
+   for(index = 0; index < sizeof(vars); index++) {
+       if (strcmp(vars[index], variable) == 0) {
+           break;
+       }
+   }/*end for*/
+   
+   if(boolVal == 1){ /*if if_stmt evaluates to true*/ 	
+	/*replace existing literal with new literal in varVals array*/
+	varVals[index]=literal;
+	return varVals[index];	
+   }/*end if*/
+   else{
+	return varVals[index];
+   }
 }
 
 
@@ -182,8 +214,8 @@ char* printEval(char *str, char *var){
 %token <theOperator> CHARACTER
 %token <theOperator> STRING
 %token <theOperator> IF
-%token <theOperator> FI
 %token <theOperator> THEN
+%token <theOperator> FI
 %token <theOperator> VARIABLE
 %token <theOperator> DSYMTAB		/*Symbol Table*/
 
@@ -203,8 +235,10 @@ char* printEval(char *str, char *var){
 %type <theOperator> prnt_expr		/*print expression*/
 %type <theReal> ass_expr
 %type <theReal> var_expr
-%type <theBoolean> if_stmt
-%type <theBoolean> then_stmt
+%type <theOperator> if
+%type <theOperator> then
+%type <theOperator> fi
+%type <theReal> if_stmt
 
 %left AND OR
 %left LT LTE GT GTE EQ NEQ
@@ -225,9 +259,9 @@ str: STRING			{ strcpy($$, $1); }
 vari: VARIABLE			{ strcpy($$, $1); }
 prnt: PRINT			{ strcpy($$, $1); }
 symtab: DSYMTAB			{ strcpy($$, $1); }
-if : IF
-then : THEN
-fi : FI
+if : IF				{ strcpy($$, $1); }
+then : THEN			{ strcpy($$, $1); }
+fi : FI				{ strcpy($$, $1); }
 
 ass_expr : vari ass_op num_expr		{$$ = assignEval($2, $1, $3); }
 str_expr : str				{ strcpy($$, $1); }
@@ -249,8 +283,10 @@ bool_expr : vari rel_op num_expr	{ $$ = relVarEval($2, $1, $3); }
 bool_expr : bool_expr bool_op bool_expr { $$ = boolEval($2, $1, $3); }
 bool_expr : '(' bool_expr ')'           { $$ = $2; }
 
-if_stmt: if '(' bool_expr ')'			{$$ = $3;} 			
-
+if_stmt : if bool_expr			{ $$ = $2; } 
+if_stmt : if_stmt NL then NL vari ass_op num_expr NL fi  { $$ = thenEval($1,$5,$7); }
+			
+ 
 program : 
         | statement_list NL
         ;
@@ -265,8 +301,8 @@ statement : num_expr NL { printf("Evaluates to: %f\n", $1); }
 	  | var_expr NL {  }
 	  | str_expr NL {  }
 	  | prnt_expr NL { printf("%s\n", $1); }
-	  | symtab NL { printf("SYMBOL TABLE\n"); symbolTab(); }
- 	  | if_stmt NL { printf("Evaluates to %s\n", getBoolWord($1)); }
+	  | symtab NL { printf("\nSYMBOL TABLE\n"); symbolTab(); }
+ 	  | if_stmt NL {  }
 	 
           ;
 %%
