@@ -163,7 +163,7 @@ char* printEval(char *str, char *var){
 }
 
 /*Returns the literal depending on condition, boolVal*/
-double thenEval(unsigned int boolVal, char *variable, double literal)
+double ifEval(unsigned int boolVal, char *variable, double literal)
 {
    int index;
    /*Find index of variable in var array*/
@@ -284,7 +284,7 @@ bool_expr : bool_expr bool_op bool_expr { $$ = boolEval($2, $1, $3); }
 bool_expr : '(' bool_expr ')'           { $$ = $2; }
 
 if_stmt : if bool_expr			{ $$ = $2; } 
-if_stmt : if_stmt NL then NL vari ass_op num_expr NL fi  { $$ = thenEval($1,$5,$7); }
+if_stmt : if_stmt NL then NL vari ass_op num_expr NL fi  { $$ = ifEval($1,$5,$7); }
 			
  
 program : 
