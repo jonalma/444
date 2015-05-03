@@ -30,17 +30,17 @@
 			return(STRING);
 		     }
 
-(if|IF) 	{
+IF	{
 			strcpy(yylval.theOperator, yytext);	
 			return(IF) ;
 		}
 
-(then|THEN)$	 {
+THEN	 {
 			strcpy(yylval.theOperator, yytext);	
 			return(THEN);
 		}
 
-(fi|FI)$ 	{
+FI 	{
 			strcpy(yylval.theOperator, yytext);	
 			return(FI) ;
 		}
@@ -50,7 +50,7 @@
 			return(PRINT) ;
 		}
 
-^(dsymtab|DSYMTAB)	{
+(dsymtab|DSYMTAB)	{
 			strcpy(yylval.theOperator, yytext);	
 			return(DSYMTAB) ;
 		}
@@ -107,6 +107,17 @@
 			return VARIABLE;
 			}
 
+"("		{
+			return LEFTPARA;
+		}
+
+")"		{
+			return RIGHTPARA;
+		}
+
+","		{
+			return COMMA;
+		}
 .				
 
 %%

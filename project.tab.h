@@ -68,7 +68,10 @@ extern int yydebug;
     THEN = 278,
     FI = 279,
     VARIABLE = 280,
-    DSYMTAB = 281
+    DSYMTAB = 281,
+    LEFTPARA = 282,
+    RIGHTPARA = 283,
+    COMMA = 284
   };
 #endif
 
@@ -77,14 +80,14 @@ extern int yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 190 "project.y" /* yacc.c:1909  */
+#line 202 "project.y" /* yacc.c:1909  */
 
 	int  theInt;
         double theReal;
 	char theOperator[MAX_STRING_LEN + 1];
 	unsigned int theBoolean;
 
-#line 88 "project.tab.h" /* yacc.c:1909  */
+#line 91 "project.tab.h" /* yacc.c:1909  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1

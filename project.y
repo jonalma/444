@@ -5,6 +5,9 @@ char **vars; /*hold variable names*/
 double varVals[20]; /*hold values of corresponding variables*/
 int c = 0;
 int i = 0;
+extern FILE *yyin;
+char *temp;
+unsigned int boolVal;
 
 void yyerror(char *s) { fprintf(stderr, "%s\n", s); }
 
@@ -88,23 +91,29 @@ unsigned int boolEval(char *bool_op, unsigned int op1, unsigned int op2)
    }
 }
 
+
+
 /*returns the double literal of variable, op1*/
 double assignEval(char *ass_op, char *op1, double op2){	
     int index;
+    temp = op1;
+    unsigned int exists = 1;
     /*If variable already exists in the array, replace with new literal*/
     for(index = 0; index < sizeof(vars); index++) {
        if (strcmp(vars[index], op1) == 0) {
            varVals[index] = op2;
-	   return 0;
+	   /*printf("EXISTS: %.0f\n",varVals[index]);   exists = 0;*/
+	   return varVals[index];
        }
     }/*end for*/
 
-     if(strcmp(ass_op, ":=") == 0){
+     if(exists == 1){
 	 strcpy(vars[c], op1);
 	 varVals[c] = op2;
-	 c++;
+	 /*printf("NEW VAR: %.0f, ARRAY SIZE: %d\n",varVals[c],c);*/
+	 return varVals[c++];
      }
-     return op2;
+     
 		
 }
 
@@ -146,7 +155,7 @@ void symbolTab(){
    printf("\n\n");
 }
 
-char* printEval(char *str, char *var){
+void printEval(char *str, char *var){
 	char* value; int index;
 	/*Find index of variable in var array*/
 	for(index = 0; index < sizeof(vars); index++) {
@@ -158,27 +167,30 @@ char* printEval(char *str, char *var){
 	/*use index to find value of variable*/
 	value = (char*) &varVals[index];
 	/*Concatenate the string and int value*/	
-	sprintf(value,"%.2f\n",varVals[index]);
-	return strcat(str,value);
+	sprintf(value,"%.0f\n",varVals[index]);
+
+	printf("%s\n",strcat(str,value));
 }
 
 /*Returns the literal depending on condition, boolVal*/
-double ifEval(unsigned int boolVal, char *variable, double literal)
+double ifEval(unsigned int boolVal, double literal)
 {
+   /*Find index of variable in 'vars' array*/
    int index;
-   /*Find index of variable in var array*/
    for(index = 0; index < sizeof(vars); index++) {
-       if (strcmp(vars[index], variable) == 0) {
+       if (strcmp(vars[index], temp) == 0) {
            break;
        }
-   }/*end for*/
-   
+   }
+
    if(boolVal == 1){ /*if if_stmt evaluates to true*/ 	
 	/*replace existing literal with new literal in varVals array*/
 	varVals[index]=literal;
+	printf("CONDITION IS TRUE: %.0f\n",varVals[index]);
 	return varVals[index];	
    }/*end if*/
    else{
+	printf("CONDITION IS FALSE: %.0f\n",varVals[index]);
 	return varVals[index];
    }
 }
@@ -218,6 +230,9 @@ double ifEval(unsigned int boolVal, char *variable, double literal)
 %token <theOperator> FI
 %token <theOperator> VARIABLE
 %token <theOperator> DSYMTAB		/*Symbol Table*/
+%token LEFTPARA
+%token RIGHTPARA
+%token COMMA
 
 %type <theOperator> symtab		
 %type <theOperator> arith_op
@@ -227,18 +242,13 @@ double ifEval(unsigned int boolVal, char *variable, double literal)
 %type <theReal> num_expr
 %type <theBoolean> bool_expr
 
-%type <theOperator> str			/*String*/
-%type <theOperator> str_expr		/*String expression*/
 %type <theOperator> vari
 %type <theOperator> ass_op		/*Assignment Operator*/
-%type <theOperator> prnt		/*PRINT*/
 %type <theOperator> prnt_expr		/*print expression*/
 %type <theReal> ass_expr
 %type <theReal> var_expr
-%type <theOperator> if
-%type <theOperator> then
-%type <theOperator> fi
 %type <theReal> if_stmt
+%type <theReal> then_stmt
 
 %left AND OR
 %left LT LTE GT GTE EQ NEQ
@@ -255,55 +265,53 @@ bool_op : AND | OR                             { strcpy($$, $1); }
 ass_op : ASSIGNMENT			       { strcpy($$, $1); }
 number : INTEGER    		{ $$ = $1; }
 number : REAL			{ $$ = $1; }
-str: STRING			{ strcpy($$, $1); }
 vari: VARIABLE			{ strcpy($$, $1); }
-prnt: PRINT			{ strcpy($$, $1); }
 symtab: DSYMTAB			{ strcpy($$, $1); }
-if : IF				{ strcpy($$, $1); }
-then : THEN			{ strcpy($$, $1); }
-fi : FI				{ strcpy($$, $1); }
 
-ass_expr : vari ass_op num_expr		{$$ = assignEval($2, $1, $3); }
-str_expr : str				{ strcpy($$, $1); }
-
-prnt_expr : prnt str_expr  		{strcpy($$,$2);}
-prnt_expr : prnt_expr ',' 		{strcpy($$,$1);}
-prnt_expr : prnt_expr vari 		{strcpy($$,printEval($1,$2));}
+prnt_expr : PRINT STRING COMMA vari	{printEval($2,$4);}
 
 num_expr : number		{ $$ = $1; }
 num_expr : num_expr arith_op num_expr  { $$ = numEval($2, $1, $3); }
-num_expr : '(' num_expr ')'    { $$ = $2; }
+num_expr : LEFTPARA num_expr RIGHTPARA    { $$ = $2; }
 
 var_expr : vari arith_op vari		{$$ = varEval($2, $1, $3);}
 var_expr : vari arith_op num_expr	{$$ = varNumEval($2,$1,$3);}
 var_expr : num_expr arith_op vari	{$$ = varNumEval($2,$3,$1);}
 
-bool_expr : num_expr rel_op num_expr  { $$ = relEval($2, $1, $3); }
+ass_expr : vari ass_op num_expr		{$$ = assignEval($2, $1, $3); temp = $1;}
+ass_expr : vari ass_op var_expr		{$$ = assignEval($2, $1, $3); }
+
+bool_expr : num_expr rel_op num_expr   { $$ = relEval($2, $1, $3); }
 bool_expr : vari rel_op num_expr	{ $$ = relVarEval($2, $1, $3); }
 bool_expr : bool_expr bool_op bool_expr { $$ = boolEval($2, $1, $3); }
-bool_expr : '(' bool_expr ')'           { $$ = $2; }
+bool_expr : LEFTPARA bool_expr RIGHTPARA           { $$ = $2; }
 
-if_stmt : if bool_expr			{ $$ = $2; } 
-if_stmt : if_stmt NL then NL vari ass_op num_expr NL fi  { $$ = ifEval($1,$5,$7); }
+if_stmt : IF bool_expr 			{$$ = $2; boolVal = $2;}
+then_stmt : THEN ass_expr FI	{$$ = ifEval(boolVal,$2);}
+
+
+NLS:
+	NLS NL
+	| NL;
 			
  
 program : 
-        | statement_list NL
+        | statement_list NLS
         ;
 
 statement_list : 
                | statement_list statement
                ;
                   
-statement : num_expr NL { printf("Evaluates to: %f\n", $1); }
-          | bool_expr NL { printf("Evaluates to %s\n", getBoolWord($1)); }
-	  | ass_expr NL {  }
-	  | var_expr NL {  }
-	  | str_expr NL {  }
-	  | prnt_expr NL { printf("%s\n", $1); }
-	  | symtab NL { printf("\nSYMBOL TABLE\n"); symbolTab(); }
- 	  | if_stmt NL {  }
-	 
+statement : NLS
+	  | num_expr NLS { printf("num Evaluates to: %.0f\n", $1); }
+          | bool_expr NLS { printf("bool Evaluates to %s\n", getBoolWord($1)); }
+	  | ass_expr NLS {  }
+	  | var_expr NLS {  }
+	  | prnt_expr NLS { }
+	  | symtab NLS { printf("SYMBOL TABLE\n"); symbolTab();}
+ 	  | if_stmt NLS { printf("\nAfter if statement, unsigned bool is: %.0f\n",$1); }
+	  | then_stmt NLS { printf("\nAfter then statement, assignment val is: %.0f\n",$1); }
           ;
 %%
 
@@ -314,7 +322,13 @@ int main(int argc, char **argv)
    for(i=0;i<20; i++) 
    	vars[i] = malloc(sizeof(char)*10);  /*10 letter words*/
 
-   yyparse();
+   if(argc == 1)
+	yyparse();
+
+   if(argc == 2){
+     yyin = fopen(argv[1],"r");
+     yyparse();
+   }
 
    return 0;
 }
