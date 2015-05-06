@@ -1,6 +1,6 @@
 # CECS444 
 
-This course focuses on Compiler Construction. The Lex and Bison programs mimic a scanner and parser, respectively. 
+This course focuses on Compiler Construction. The Flex and Bison program files mimic a basic lexer and parser, respectively. The project.l tokenizes the inputs. The project.y works with the lex file to receive the tokens to create productions. 
 
 For educational purpose only
 
