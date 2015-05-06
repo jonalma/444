@@ -68,12 +68,10 @@
 
 char **vars; /*hold variable names*/
 double varVals[20]; /*hold values of corresponding variables*/
-int c = 0;
-int i = 0;
-extern FILE *yyin;
-char *tempVar;
-double tempVal;
-int ifbool=0;
+int c = 0;  /*Counter used to check index of varVals array*/
+int i = 0;  
+extern FILE *yyin; /*input text file*/
+int ifbool=0; /* flag to check IF condition is true/false */
 
 void yyerror(char *s) { fprintf(stderr, "%s\n", s); }
 
@@ -124,19 +122,15 @@ unsigned int relEval(char *rel_op, double op1, double op2)
 /*When a variable is compared to a numeric operand*/
 unsigned int relVarEval(char *rel_op, char* var, double op2)
 {    
-   printf("%s %s %.0f\n",rel_op, var, op2);
- 
    int index;
    /*Find index of variable in var array*/
    for(index = 0; index < sizeof(vars); index++) {
-	printf("%.0f ",varVals[index]);
 	if (strcmp(vars[index], var) == 0) {
         	break;
    	}
    }
    double op1 = varVals[index];
-   printf("Variable %s VAL %.0f\n",vars[index],op1);
-    
+
    if(strcmp(rel_op, "<") == 0) return (op1 < op2 ? 1 : 0);
    else if(strcmp(rel_op, "<=") == 0) return (op1 <= op2 ? 1 : 0);
    else if(strcmp(rel_op, ">") == 0) return (op1 > op2 ? 1 : 0);
@@ -166,16 +160,14 @@ unsigned int boolEval(char *bool_op, unsigned int op1, unsigned int op2)
 /*returns the double literal of variable, op1*/
 double assignEval(char *ass_op, char *op1, double op2){	
     int index;
-    /*printf("The temp var is %s\n",tempVar);
-    printf("The temp val is %.0f\n",tempVal);*/
     unsigned int exists = 1;
     /*If variable already exists in the array, replace with new literal*/
     for(index = 0; index < sizeof(vars); index++) {
        if (strcmp(vars[index], op1) == 0) {
            varVals[index] = op2;
-	   exists = 0;
 	   printf("EXISTS: %.0f\n",varVals[index]);   
 	   return varVals[index];
+	   break;
        }
     }/*end for*/
 
@@ -240,37 +232,22 @@ void printEval(char *str, char *var){
 	value = (char*) &varVals[index];
 	/*Concatenate the string and int value*/	
 	sprintf(value,"%.0f\n",varVals[index]);
-	tempVal = varVals[index];
 	printf("%s\n",strcat(str,value));
 }
 
-/*Returns the literal depending on condition, boolVal*/
-double ifEval(unsigned int boolVal, double literal)
-{
-printf("ifbool is %d\n",ifbool);
-   /*Find index of variable in 'vars' array*/
-   int index;
-   for(index = 0; index < sizeof(vars); index++) {
-       if (strcmp(vars[index], tempVar) == 0) {
-           break;
-       }
-   }
-
-   if(boolVal == 1){ /*if if_stmt evaluates to true*/ 	
-	/*replace existing literal with new literal in varVals array*/
-	varVals[index]=literal;
-	/*printf("CONDITION IS TRUE: %.0f\n",varVals[index]);*/
-	return varVals[index];	
-   }/*end if*/
-   else if (boolVal == 0){
-	/*printf("CONDITION IS FALSE: %.0f\n",varVals[index]);*/
-	return varVals[index];
-   }
+int returnIndex(char *var){
+	int index;
+	/*Find index of variable in var array*/
+	for(index = 0; index < sizeof(vars); index++) {
+    	  if (strcmp(vars[index], var) == 0) {
+		return index;
+        	break;
+   	  }
+	}
 }
 
 
-
-#line 274 "project.tab.c" /* yacc.c:339  */
+#line 251 "project.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -340,14 +317,14 @@ extern int yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 210 "project.y" /* yacc.c:355  */
+#line 187 "project.y" /* yacc.c:355  */
 
 	int  theInt;
         double theReal;
 	char theOperator[MAX_STRING_LEN + 1];
 	unsigned int theBoolean;
 
-#line 351 "project.tab.c" /* yacc.c:355  */
+#line 328 "project.tab.c" /* yacc.c:355  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
@@ -362,7 +339,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 366 "project.tab.c" /* yacc.c:358  */
+#line 343 "project.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -662,12 +639,12 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   270,   270,   270,   270,   270,   271,   271,   271,   271,
-     271,   271,   272,   272,   273,   274,   275,   276,   277,   279,
-     280,   281,   282,   284,   285,   286,   288,   289,   290,   292,
-     293,   295,   296,   297,   298,   300,   301,   305,   306,   309,
-     310,   313,   314,   317,   318,   319,   320,   321,   322,   323,
-     324,   325
+       0,   247,   247,   247,   247,   247,   248,   248,   248,   248,
+     248,   248,   249,   249,   250,   251,   252,   253,   254,   256,
+     257,   258,   259,   261,   262,   263,   265,   266,   267,   269,
+     270,   272,   273,   274,   275,   277,   278,   282,   283,   286,
+     287,   290,   291,   294,   295,   296,   297,   298,   299,   300,
+     301,   302
 };
 #endif
 
@@ -1508,211 +1485,211 @@ yyreduce:
   switch (yyn)
     {
         case 5:
-#line 270 "project.y" /* yacc.c:1646  */
+#line 247 "project.y" /* yacc.c:1646  */
     { strcpy((yyval.theOperator), (yyvsp[0].theOperator)); }
-#line 1514 "project.tab.c" /* yacc.c:1646  */
+#line 1491 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 271 "project.y" /* yacc.c:1646  */
+#line 248 "project.y" /* yacc.c:1646  */
     { strcpy((yyval.theOperator), (yyvsp[0].theOperator)); }
-#line 1520 "project.tab.c" /* yacc.c:1646  */
+#line 1497 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 272 "project.y" /* yacc.c:1646  */
+#line 249 "project.y" /* yacc.c:1646  */
     { strcpy((yyval.theOperator), (yyvsp[0].theOperator)); }
-#line 1526 "project.tab.c" /* yacc.c:1646  */
+#line 1503 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 273 "project.y" /* yacc.c:1646  */
+#line 250 "project.y" /* yacc.c:1646  */
     { strcpy((yyval.theOperator), (yyvsp[0].theOperator)); }
-#line 1532 "project.tab.c" /* yacc.c:1646  */
+#line 1509 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 274 "project.y" /* yacc.c:1646  */
+#line 251 "project.y" /* yacc.c:1646  */
     { (yyval.theReal) = (yyvsp[0].theInt); }
-#line 1538 "project.tab.c" /* yacc.c:1646  */
+#line 1515 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 275 "project.y" /* yacc.c:1646  */
+#line 252 "project.y" /* yacc.c:1646  */
     { (yyval.theReal) = (yyvsp[0].theReal); }
-#line 1544 "project.tab.c" /* yacc.c:1646  */
+#line 1521 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 276 "project.y" /* yacc.c:1646  */
+#line 253 "project.y" /* yacc.c:1646  */
     { strcpy((yyval.theOperator), (yyvsp[0].theOperator)); }
-#line 1550 "project.tab.c" /* yacc.c:1646  */
+#line 1527 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 18:
-#line 277 "project.y" /* yacc.c:1646  */
+#line 254 "project.y" /* yacc.c:1646  */
     { strcpy((yyval.theOperator), (yyvsp[0].theOperator)); }
-#line 1556 "project.tab.c" /* yacc.c:1646  */
+#line 1533 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 279 "project.y" /* yacc.c:1646  */
+#line 256 "project.y" /* yacc.c:1646  */
     {printEval((yyvsp[-2].theOperator),(yyvsp[0].theOperator));}
-#line 1562 "project.tab.c" /* yacc.c:1646  */
+#line 1539 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 280 "project.y" /* yacc.c:1646  */
+#line 257 "project.y" /* yacc.c:1646  */
     {printf("%s%.0f ",(yyvsp[-2].theOperator),(yyvsp[0].theReal));}
-#line 1568 "project.tab.c" /* yacc.c:1646  */
+#line 1545 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 281 "project.y" /* yacc.c:1646  */
-    {printf("%s%.0f",(yyvsp[-2].theOperator),(yyvsp[0].theReal));}
-#line 1574 "project.tab.c" /* yacc.c:1646  */
+#line 258 "project.y" /* yacc.c:1646  */
+    {printf("%s%.2f",(yyvsp[-2].theOperator),(yyvsp[0].theReal));}
+#line 1551 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 282 "project.y" /* yacc.c:1646  */
+#line 259 "project.y" /* yacc.c:1646  */
     {printf("%s%s",(yyvsp[-2].theOperator),getBoolWord((yyvsp[0].theBoolean)));}
-#line 1580 "project.tab.c" /* yacc.c:1646  */
+#line 1557 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 284 "project.y" /* yacc.c:1646  */
+#line 261 "project.y" /* yacc.c:1646  */
     { (yyval.theReal) = (yyvsp[0].theReal); }
-#line 1586 "project.tab.c" /* yacc.c:1646  */
+#line 1563 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 24:
-#line 285 "project.y" /* yacc.c:1646  */
+#line 262 "project.y" /* yacc.c:1646  */
     { (yyval.theReal) = numEval((yyvsp[-1].theOperator), (yyvsp[-2].theReal), (yyvsp[0].theReal)); }
-#line 1592 "project.tab.c" /* yacc.c:1646  */
+#line 1569 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 25:
-#line 286 "project.y" /* yacc.c:1646  */
+#line 263 "project.y" /* yacc.c:1646  */
     { (yyval.theReal) = (yyvsp[-1].theReal); }
-#line 1598 "project.tab.c" /* yacc.c:1646  */
+#line 1575 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 26:
-#line 288 "project.y" /* yacc.c:1646  */
+#line 265 "project.y" /* yacc.c:1646  */
     {(yyval.theReal) = varEval((yyvsp[-1].theOperator), (yyvsp[-2].theOperator), (yyvsp[0].theOperator));}
-#line 1604 "project.tab.c" /* yacc.c:1646  */
+#line 1581 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 27:
-#line 289 "project.y" /* yacc.c:1646  */
+#line 266 "project.y" /* yacc.c:1646  */
     {(yyval.theReal) = varNumEval((yyvsp[-1].theOperator),(yyvsp[-2].theOperator),(yyvsp[0].theReal));}
-#line 1610 "project.tab.c" /* yacc.c:1646  */
+#line 1587 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 28:
-#line 290 "project.y" /* yacc.c:1646  */
+#line 267 "project.y" /* yacc.c:1646  */
     {(yyval.theReal) = varNumEval((yyvsp[-1].theOperator),(yyvsp[0].theOperator),(yyvsp[-2].theReal));}
-#line 1616 "project.tab.c" /* yacc.c:1646  */
+#line 1593 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 29:
-#line 292 "project.y" /* yacc.c:1646  */
+#line 269 "project.y" /* yacc.c:1646  */
     { (yyval.theReal) = assignEval((yyvsp[-1].theOperator), (yyvsp[-2].theOperator), (yyvsp[0].theReal));}
-#line 1622 "project.tab.c" /* yacc.c:1646  */
+#line 1599 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 30:
-#line 293 "project.y" /* yacc.c:1646  */
+#line 270 "project.y" /* yacc.c:1646  */
     {(yyval.theReal) = assignEval((yyvsp[-1].theOperator), (yyvsp[-2].theOperator), (yyvsp[0].theReal)); }
-#line 1628 "project.tab.c" /* yacc.c:1646  */
+#line 1605 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 31:
-#line 295 "project.y" /* yacc.c:1646  */
+#line 272 "project.y" /* yacc.c:1646  */
     { (yyval.theBoolean) = relEval((yyvsp[-1].theOperator), (yyvsp[-2].theReal), (yyvsp[0].theReal)); }
-#line 1634 "project.tab.c" /* yacc.c:1646  */
+#line 1611 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 32:
-#line 296 "project.y" /* yacc.c:1646  */
-    { (yyval.theBoolean) = relVarEval((yyvsp[-1].theOperator), (yyvsp[-2].theOperator), (yyvsp[0].theReal)); printf("Outside ifbool %d\n",(yyval.theBoolean));}
-#line 1640 "project.tab.c" /* yacc.c:1646  */
+#line 273 "project.y" /* yacc.c:1646  */
+    { (yyval.theBoolean) = relVarEval((yyvsp[-1].theOperator), (yyvsp[-2].theOperator), (yyvsp[0].theReal)); }
+#line 1617 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 33:
-#line 297 "project.y" /* yacc.c:1646  */
+#line 274 "project.y" /* yacc.c:1646  */
     { (yyval.theBoolean) = boolEval((yyvsp[-1].theOperator), (yyvsp[-2].theBoolean), (yyvsp[0].theBoolean)); }
-#line 1646 "project.tab.c" /* yacc.c:1646  */
+#line 1623 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 34:
-#line 298 "project.y" /* yacc.c:1646  */
+#line 275 "project.y" /* yacc.c:1646  */
     { (yyval.theBoolean) = (yyvsp[-1].theBoolean); }
-#line 1652 "project.tab.c" /* yacc.c:1646  */
+#line 1629 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 35:
-#line 300 "project.y" /* yacc.c:1646  */
-    {(yyval.theReal) = (yyvsp[0].theBoolean); ifbool = (yyvsp[0].theBoolean); printf("Now ifbool %d\n",ifbool);}
-#line 1658 "project.tab.c" /* yacc.c:1646  */
+#line 277 "project.y" /* yacc.c:1646  */
+    {(yyval.theReal) = (yyvsp[0].theBoolean); ifbool = (yyvsp[0].theBoolean);}
+#line 1635 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 36:
-#line 301 "project.y" /* yacc.c:1646  */
-    {if(ifbool==1){ assignEval((yyvsp[-3].theOperator),(yyvsp[-4].theOperator),(yyvsp[-2].theReal)); } }
-#line 1664 "project.tab.c" /* yacc.c:1646  */
+#line 278 "project.y" /* yacc.c:1646  */
+    {if(ifbool==1){ varVals[returnIndex((yyvsp[-4].theOperator))]=(yyvsp[-2].theReal); ifbool == 0;} }
+#line 1641 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 44:
-#line 318 "project.y" /* yacc.c:1646  */
+#line 295 "project.y" /* yacc.c:1646  */
     { printf("num Evaluates to: %.0f\n", (yyvsp[-1].theReal)); }
-#line 1670 "project.tab.c" /* yacc.c:1646  */
+#line 1647 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 45:
-#line 319 "project.y" /* yacc.c:1646  */
+#line 296 "project.y" /* yacc.c:1646  */
     { printf("bool Evaluates to %s\n", getBoolWord((yyvsp[-1].theBoolean))); }
-#line 1676 "project.tab.c" /* yacc.c:1646  */
+#line 1653 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 46:
-#line 320 "project.y" /* yacc.c:1646  */
+#line 297 "project.y" /* yacc.c:1646  */
     {  }
-#line 1682 "project.tab.c" /* yacc.c:1646  */
+#line 1659 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 47:
-#line 321 "project.y" /* yacc.c:1646  */
+#line 298 "project.y" /* yacc.c:1646  */
     {  }
-#line 1688 "project.tab.c" /* yacc.c:1646  */
+#line 1665 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 48:
-#line 322 "project.y" /* yacc.c:1646  */
+#line 299 "project.y" /* yacc.c:1646  */
     { }
-#line 1694 "project.tab.c" /* yacc.c:1646  */
+#line 1671 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 49:
-#line 323 "project.y" /* yacc.c:1646  */
+#line 300 "project.y" /* yacc.c:1646  */
     { printf("SYMBOL TABLE\n"); symbolTab();}
-#line 1700 "project.tab.c" /* yacc.c:1646  */
+#line 1677 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 50:
-#line 324 "project.y" /* yacc.c:1646  */
+#line 301 "project.y" /* yacc.c:1646  */
     { /*printf("\nAfter if statement, unsigned bool is: %.0f\n",$1);*/ }
-#line 1706 "project.tab.c" /* yacc.c:1646  */
+#line 1683 "project.tab.c" /* yacc.c:1646  */
     break;
 
   case 51:
-#line 325 "project.y" /* yacc.c:1646  */
+#line 302 "project.y" /* yacc.c:1646  */
     { /*printf("\nAfter then statement, assignment val is: %.0f\n",$1); */}
-#line 1712 "project.tab.c" /* yacc.c:1646  */
+#line 1689 "project.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1716 "project.tab.c" /* yacc.c:1646  */
+#line 1693 "project.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1940,12 +1917,13 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 327 "project.y" /* yacc.c:1906  */
+#line 304 "project.y" /* yacc.c:1906  */
 
 
 int main(int argc, char **argv)
 {
-   int i;
+   /* Allocate memory for vars array (an array of char pointers)*/
+   int i; 
    vars = malloc(sizeof(char*)*20);
    for(i=0;i<20; i++) 
    	vars[i] = malloc(sizeof(char)*10);  /*10 letter words*/
@@ -1956,6 +1934,7 @@ int main(int argc, char **argv)
    if(argc == 2){
      yyin = fopen(argv[1],"r");
      yyparse();
+     printf("\n\nDONE \n");
    }
 
    return 0;

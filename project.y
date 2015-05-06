@@ -3,12 +3,10 @@
 
 char **vars; /*hold variable names*/
 double varVals[20]; /*hold values of corresponding variables*/
-int c = 0;
-int i = 0;
-extern FILE *yyin;
-char *tempVar;
-double tempVal;
-int ifbool=0;
+int c = 0;  /*Counter used to check index of varVals array*/
+int i = 0;  
+extern FILE *yyin; /*input text file*/
+int ifbool=0; /* flag to check IF condition is true/false */
 
 void yyerror(char *s) { fprintf(stderr, "%s\n", s); }
 
@@ -59,19 +57,15 @@ unsigned int relEval(char *rel_op, double op1, double op2)
 /*When a variable is compared to a numeric operand*/
 unsigned int relVarEval(char *rel_op, char* var, double op2)
 {    
-   printf("%s %s %.0f\n",rel_op, var, op2);
- 
    int index;
    /*Find index of variable in var array*/
    for(index = 0; index < sizeof(vars); index++) {
-	printf("%.0f ",varVals[index]);
 	if (strcmp(vars[index], var) == 0) {
         	break;
    	}
    }
    double op1 = varVals[index];
-   printf("Variable %s VAL %.0f\n",vars[index],op1);
-    
+
    if(strcmp(rel_op, "<") == 0) return (op1 < op2 ? 1 : 0);
    else if(strcmp(rel_op, "<=") == 0) return (op1 <= op2 ? 1 : 0);
    else if(strcmp(rel_op, ">") == 0) return (op1 > op2 ? 1 : 0);
@@ -101,16 +95,14 @@ unsigned int boolEval(char *bool_op, unsigned int op1, unsigned int op2)
 /*returns the double literal of variable, op1*/
 double assignEval(char *ass_op, char *op1, double op2){	
     int index;
-    /*printf("The temp var is %s\n",tempVar);
-    printf("The temp val is %.0f\n",tempVal);*/
     unsigned int exists = 1;
     /*If variable already exists in the array, replace with new literal*/
     for(index = 0; index < sizeof(vars); index++) {
        if (strcmp(vars[index], op1) == 0) {
            varVals[index] = op2;
-	   exists = 0;
 	   printf("EXISTS: %.0f\n",varVals[index]);   
 	   return varVals[index];
+	   break;
        }
     }/*end for*/
 
@@ -175,34 +167,19 @@ void printEval(char *str, char *var){
 	value = (char*) &varVals[index];
 	/*Concatenate the string and int value*/	
 	sprintf(value,"%.0f\n",varVals[index]);
-	tempVal = varVals[index];
 	printf("%s\n",strcat(str,value));
 }
 
-/*Returns the literal depending on condition, boolVal*/
-double ifEval(unsigned int boolVal, double literal)
-{
-printf("ifbool is %d\n",ifbool);
-   /*Find index of variable in 'vars' array*/
-   int index;
-   for(index = 0; index < sizeof(vars); index++) {
-       if (strcmp(vars[index], tempVar) == 0) {
-           break;
-       }
-   }
-
-   if(boolVal == 1){ /*if if_stmt evaluates to true*/ 	
-	/*replace existing literal with new literal in varVals array*/
-	varVals[index]=literal;
-	/*printf("CONDITION IS TRUE: %.0f\n",varVals[index]);*/
-	return varVals[index];	
-   }/*end if*/
-   else if (boolVal == 0){
-	/*printf("CONDITION IS FALSE: %.0f\n",varVals[index]);*/
-	return varVals[index];
-   }
+int returnIndex(char *var){
+	int index;
+	/*Find index of variable in var array*/
+	for(index = 0; index < sizeof(vars); index++) {
+    	  if (strcmp(vars[index], var) == 0) {
+		return index;
+        	break;
+   	  }
+	}
 }
-
 
 %}
 
@@ -278,7 +255,7 @@ symtab: DSYMTAB			{ strcpy($$, $1); }
 
 prnt_expr : PRINT STRING COMMA vari	{printEval($2,$4);}
 	  | PRINT STRING COMMA num_expr	{printf("%s%.0f ",$2,$4);}
-	  | prnt_expr COMMA STRING COMMA num_expr    {printf("%s%.0f",$3,$5);}
+	  | prnt_expr COMMA STRING COMMA num_expr    {printf("%s%.2f",$3,$5);}
 	  | prnt_expr COMMA STRING COMMA bool_expr	{printf("%s%s",$3,getBoolWord($5));}
 
 num_expr : number		{ $$ = $1; }
@@ -293,12 +270,12 @@ ass_expr : vari ass_op num_expr		{ $$ = assignEval($2, $1, $3);}
 ass_expr : vari ass_op var_expr		{$$ = assignEval($2, $1, $3); }
 
 bool_expr : num_expr rel_op num_expr   { $$ = relEval($2, $1, $3); }
-bool_expr : vari rel_op num_expr	{ $$ = relVarEval($2, $1, $3); printf("Outside ifbool %d\n",$$);}
+bool_expr : vari rel_op num_expr	{ $$ = relVarEval($2, $1, $3); }
 bool_expr : bool_expr bool_op bool_expr { $$ = boolEval($2, $1, $3); }
 bool_expr : LEFTPARA bool_expr RIGHTPARA           { $$ = $2; }
 
-if_stmt : IF bool_expr 			{$$ = $2; ifbool = $2; printf("Now ifbool %d\n",ifbool);}
-then_stmt : THEN NLS vari ass_op num_expr NLS FI	{if(ifbool==1){ assignEval($4,$3,$5); } }
+if_stmt : IF bool_expr 			{$$ = $2; ifbool = $2;}
+then_stmt : THEN NLS vari ass_op num_expr NLS FI	{if(ifbool==1){ varVals[returnIndex($3)]=$5; ifbool == 0;} }
 
 
 NLS:
@@ -328,7 +305,8 @@ statement : NLS
 
 int main(int argc, char **argv)
 {
-   int i;
+   /* Allocate memory for vars array (an array of char pointers)*/
+   int i; 
    vars = malloc(sizeof(char*)*20);
    for(i=0;i<20; i++) 
    	vars[i] = malloc(sizeof(char)*10);  /*10 letter words*/
@@ -339,6 +317,7 @@ int main(int argc, char **argv)
    if(argc == 2){
      yyin = fopen(argv[1],"r");
      yyparse();
+     printf("\n\nDONE \n");
    }
 
    return 0;
